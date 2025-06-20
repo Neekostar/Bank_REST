@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 public interface CardBlockRequestMapper {
 
     @Mapping(target = "cardId", source = "card.id")
+    @Mapping(target = "requesterId", source = "requester.id")
     CardBlockResponseDto toDto(CardBlockRequest request);
 }

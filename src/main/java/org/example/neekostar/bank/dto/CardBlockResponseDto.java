@@ -9,6 +9,7 @@ public class CardBlockResponseDto {
 
     private UUID id;
     private UUID cardId;
+    private UUID requesterId;
     private String reason;
     private String status;
     private LocalDateTime createdAt;

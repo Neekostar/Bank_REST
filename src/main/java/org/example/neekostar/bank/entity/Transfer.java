@@ -35,6 +35,5 @@ public class Transfer {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    @CreationTimestamp
     private LocalDateTime timestamp;
 }

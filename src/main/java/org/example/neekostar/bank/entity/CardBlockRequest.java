@@ -15,7 +15,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Data
 @Entity
-@Table(name = "card_block_requests")
+@Table(name = "block_requests")
 public class CardBlockRequest {
 
     @Id
@@ -25,6 +25,10 @@ public class CardBlockRequest {
     @ManyToOne
     @JoinColumn(nullable = false)
     private Card card;
+
+    @ManyToOne
+    @JoinColumn(name = "requester_id", nullable = false)
+    private User requester;
 
     private String reason;
 

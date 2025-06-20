@@ -96,7 +96,7 @@ public class TransferServiceImplTest {
         when(cardRepository.findById(fromCardId)).thenReturn(Optional.of(fromCard));
         when(cardRepository.findById(toCardId)).thenReturn(Optional.of(toCard));
         when(transferRepository.save(any(Transfer.class))).thenReturn(transfer);
-        when(transferMapper.toDto(transfer)).thenReturn(transferResponseDto);
+        when(transferMapper.toDto(any(Transfer.class))).thenReturn(transferResponseDto);
 
         TransferResponseDto result = transferService.createTransfer(userId, transferRequestDto);
 

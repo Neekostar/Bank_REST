@@ -8,6 +8,7 @@ import org.example.neekostar.bank.entity.Card;
 import org.example.neekostar.bank.entity.CardBlockRequest;
 import org.example.neekostar.bank.entity.CardStatus;
 import org.example.neekostar.bank.entity.RequestStatus;
+import org.example.neekostar.bank.entity.User;
 import org.example.neekostar.bank.exception.InvalidArgumentException;
 import org.example.neekostar.bank.mapper.CardBlockRequestMapper;
 import org.example.neekostar.bank.repository.CardBlockRequestRepository;
@@ -44,10 +45,13 @@ public class CardBlockRequestServiceImpl implements CardBlockRequestService {
             throw new InvalidArgumentException("You do not own this card");
         }
 
+        User requester = card.getOwner();
+
         CardBlockRequest cardBlockRequest = new CardBlockRequest();
         cardBlockRequest.setCard(card);
         cardBlockRequest.setReason(request.getReason());
         cardBlockRequest.setStatus(RequestStatus.PENDING);
+        cardBlockRequest.setRequester(requester);
 
         requestRepository.save(cardBlockRequest);
     }

@@ -1,6 +1,7 @@
 package org.example.neekostar.bank.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.example.neekostar.bank.dto.TransferRequestDto;
@@ -69,6 +70,7 @@ public class TransferServiceImpl implements TransferService {
         transfer.setFromCard(fromCard);
         transfer.setToCard(toCard);
         transfer.setAmount(amount);
+        transfer.setTimestamp(LocalDateTime.now());
 
         cardRepository.save(fromCard);
         cardRepository.save(toCard);
