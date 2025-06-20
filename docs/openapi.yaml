@@ -1,0 +1,636 @@
+openapi: 3.0.3
+info:
+  title: Bank Auth API
+  version: 1.0.0
+  description: Документация по аутентификации пользователей в банковском приложении
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Регистрация нового пользователя
+      operationId: registerUser
+      tags: [ Auth ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterDto'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+        '400':
+          description: Неверный запрос
+
+  /api/auth/login:
+    post:
+      summary: Аутентификация пользователя
+      operationId: loginUser
+      tags: [ Auth ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginDto'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponseDto'
+        '401':
+          description: Неверные учётные данные
+
+  /api/auth/refresh:
+    post:
+      summary: Обновление access токена
+      operationId: refreshToken
+      tags: [ Auth ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenDto'
+      responses:
+        '200':
+          description: Новый access токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponseDto'
+        '403':
+          description: Refresh токен недействителен
+
+  /api/card-block-requests:
+    post:
+      summary: Отправить заявку на блокировку карты
+      operationId: submitBlockRequest
+      tags: [ Card Block Requests ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardBlockRequestDto'
+      responses:
+        '200':
+          description: Заявка успешно отправлена
+        '403':
+          description: Доступ запрещён
+
+
+  /api/card-block-requests/pending:
+    get:
+      summary: Получить все необработанные заявки на блокировку
+      operationId: getPendingBlockRequests
+      tags: [ Card Block Requests ]
+      responses:
+        '200':
+          description: Список необработанных заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardBlockResponseDto'
+        '403':
+          description: Доступ запрещён
+
+  /api/card-block-requests/{requestId}/approve:
+    post:
+      summary: Одобрить заявку на блокировку карты
+      operationId: approveBlockRequest
+      tags: [ Card Block Requests ]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Заявка одобрена
+        '403':
+          description: Доступ запрещён
+
+  /api/card-block-requests/{requestId}/reject:
+    post:
+      summary: Отклонить заявку на блокировку карты
+      operationId: rejectBlockRequest
+      tags: [ Card Block Requests ]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Заявка отклонена
+        '403':
+          description: Доступ запрещён
+
+  /api/cards/{userId}/create:
+    post:
+      summary: Создать карту для пользователя
+      operationId: createCard
+      tags: [ Cards ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardRequestDto'
+      responses:
+        '201':
+          description: Карта успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponseDto'
+
+  /api/cards/{cardId}:
+    get:
+      summary: Получить карту по ID
+      operationId: getCard
+      tags: [ Cards ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Данные карты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponseDto'
+
+  /api/cards/{cardId}/balance:
+    get:
+      summary: Получить баланс карты
+      operationId: getCardBalance
+      tags: [ Cards ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Баланс карты
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/cards:
+    get:
+      summary: Получить карты текущего пользователя
+      operationId: getCardsForUser
+      tags: [ Cards ]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Список карт текущего пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardResponseDto'
+
+  /api/cards/filter:
+    get:
+      summary: Фильтрация карт текущего пользователя по статусу
+      operationId: filterCards
+      tags: [ Cards ]
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Отфильтрованные карты текущего пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardResponseDto'
+
+  /api/cards/{cardId}/block:
+    patch:
+      summary: Заблокировать карту
+      operationId: blockCard
+      tags: [ Cards ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Карта заблокирована
+
+  /api/cards/{cardId}/activate:
+    patch:
+      summary: Активировать карту
+      operationId: activateCard
+      tags: [ Cards ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Карта активирована
+
+  /api/cards/{cardId}/delete:
+    patch:
+      summary: Удалить карту
+      operationId: deleteCard
+      tags: [ Cards ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Карта удалена
+
+  /api/transfers:
+    post:
+      summary: Выполнить перевод между картами
+      operationId: transfer
+      tags: [ Transfers ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequestDto'
+      responses:
+        '201':
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponseDto'
+
+
+  /api/transfers/history/{cardId}:
+    get:
+      summary: Получить историю переводов по карте
+      operationId: getTransferHistory
+      tags: [ Transfers ]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: История переводов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferResponseDto'
+  /api/users:
+    get:
+      summary: Получить всех пользователей
+      operationId: getAllUsers
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponseDto'
+        '403':
+          description: Доступ запрещён
+
+  /api/users/{userId}:
+    get:
+      summary: Получить пользователя по ID
+      operationId: getUserById
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDto'
+        '404':
+          description: Пользователь не найден
+        '403':
+          description: Доступ запрещён
+
+    put:
+      summary: Обновить данные пользователя
+      operationId: updateUser
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateDto'
+      responses:
+        '200':
+          description: Данные обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDto'
+        '403':
+          description: Доступ запрещён
+
+    delete:
+      summary: Удалить пользователя
+      operationId: deleteUser
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Удалено успешно
+        '403':
+          description: Доступ запрещён
+
+components:
+  schemas:
+
+    CardBlockRequestDto:
+      type: object
+      properties:
+        cardId:
+          type: string
+          format: uuid
+          description: Идентификатор карты
+        reason:
+          type: string
+          description: Причина блокировки карты
+      required:
+        - cardId
+        - reason
+
+    CardBlockResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cardId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CardRequestDto:
+      type: object
+      properties:
+        expiryDate:
+          type: string
+          format: date
+          description: Дата истечения карты (должна быть в будущем)
+        balance:
+          type: number
+          format: double
+          minimum: 0
+          description: Баланс карты (не может быть отрицательным)
+      required:
+        - expiryDate
+        - balance
+
+    CardResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        maskedNumber:
+          type: string
+          description: Маскированный номер карты
+        ownerEmail:
+          type: string
+          format: email
+        expiryDate:
+          type: string
+          format: date
+        status:
+          type: string
+        balance:
+          type: number
+          format: double
+
+    JwtResponseDto:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+
+    RefreshTokenDto:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+
+    TransferRequestDto:
+      type: object
+      properties:
+        fromCardId:
+          type: string
+          format: uuid
+          description: Идентификатор карты отправителя
+        toCardId:
+          type: string
+          format: uuid
+          description: Идентификатор карты получателя
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Сумма перевода (больше нуля)
+      required:
+        - fromCardId
+        - toCardId
+        - amount
+
+    TransferResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromCardNumber:
+          type: string
+          description: Номер карты отправителя
+        toCardNumber:
+          type: string
+          description: Номер карты получателя
+        amount:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    UserLoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    UserRegisterDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+
+    UserResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+
+    UserUpdateDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+      required:
+        - firstName
+        - lastName
+
